@@ -91,14 +91,17 @@ int main(){
 	
 
 	// window rendering
-	//SetTraceLogLevel(LOG_ERROR); 
-	//InitWindow(100, 100, "window");
-	//SetTargetFPS(30);
-	//while(!WindowShouldClose()){
-	//	BeginDrawing();
-	//	ClearBackground(GRAY);
-	//	EndDrawing();
-	//}
+	SetTraceLogLevel(LOG_ERROR); 
+	InitWindow(100, 100, "window");
+	SetTargetFPS(30);
+	while(!WindowShouldClose()){
+		BeginDrawing();
+		ClearBackground(GRAY);
+
+	
+
+		EndDrawing();
+	}
 	while(true)continue;
 	return 0; 
 }
