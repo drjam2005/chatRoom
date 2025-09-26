@@ -6,20 +6,42 @@ project(
   default_options : ['warning_level=3', 'cpp_std=c++14'],
 )
 
+serverDeps = [
+]
+
 raylib_dep = dependency('raylib', required: true)
-dependencies = [
+clientDeps = [
   raylib_dep
 ]
+includeDirs = include_directories('include')
 
-src = [
-  'src/main.cpp',
+mainSrc = [
+  # 'src/objects.cpp',
 ]
 
-exe = executable(
-  'ChatClient',
-  src,
+serverSrc = [
+ 'src/server.cpp'
+
+]
+clientSrc = [
+ 'src/client.cpp'
+]
+
+server = executable(
+  'server',
+  [mainSrc, serverSrc],
   install : true,
-  dependencies : dependencies,
+  dependencies : serverDeps,
+  include_directories : includeDirs,
 )
 
-test('basic', exe)
+client = executable(
+  'client',
+  [mainSrc, clientSrc],
+  install : true,
+  dependencies : clientDeps,
+  include_directories : includeDirs,
+)
+
+test('basic', server)
+test('basic', client)
