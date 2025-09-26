@@ -15,14 +15,12 @@
 #include <packets.h>
 
 void consoleInput(int socket_fd){
-	sleep(1);
 	while (true){
 		char message[1024] = {0};
-		std::cout << "Message: "; 
 		std::cin.getline(message, sizeof(message));
 
 		PACKET_TYPE packet_type = MESSAGE;
-		MESSAGE_PACKET packet;
+		_MESSAGE_PACKET packet;
 		strncpy(packet.message, message, sizeof(packet.message));
 		send(socket_fd, &packet_type, sizeof(PACKET_TYPE), 0);
 		send(socket_fd, &packet, sizeof(packet), 0);
@@ -32,9 +30,35 @@ void consoleInput(int socket_fd){
 void handleIncomingPackets(int socket_fd){
 	while (true){
 		PACKET_TYPE pt;
-		recv(socket_fd, &pt, sizeof(PACKET_TYPE), 0);
-		if(pt == MESSAGE){
+		int bytes = recv(socket_fd, &pt, sizeof(PACKET_TYPE), 0);
+		if(bytes <= 0){
+			std::cout << "Server stoppeed..." << std::endl;
+			return;
 		}
+		if(pt == USER_JOIN){
+			Client newClient;
+			recv(socket_fd, &newClient, sizeof(Client), 0);
+			std::cout << "\nNew client: " << newClient.client_fd << " : " << newClient.username << std::endl;
+		}
+		
+		if(pt == USER_EXISTING){
+			Client existingClient;
+			recv(socket_fd, &existingClient, sizeof(Client), 0);
+			std::cout << "\nExisting client: " << existingClient.client_fd << " : " << existingClient.username << std::endl;
+		}
+
+		if(pt == USER_LEAVE){
+			Client leftClient;
+			recv(socket_fd, &leftClient, sizeof(Client), 0);
+			std::cout << leftClient.username << " left..." << std::endl;
+		}
+
+		if(pt == MESSAGE){
+			_MESSAGE_PACKET msg; 
+			int rec = recv(socket_fd, &msg, sizeof(_MESSAGE_PACKET), 0); if(rec <= 0) return;
+			std::cout << msg.client.username << ": " << msg.message << std::endl;
+		}
+
 	}
 }
 
@@ -58,16 +82,23 @@ int main(){
 		return -2;
 	}
 
+	// send(socket_fd, (PACKET_TYPE*)(JOIN), sizeof(PACKET_TYPE), 0);
 	send(socket_fd, name, sizeof(name), 0);
 	std::thread test(consoleInput, socket_fd);
+	std::thread handlePackets(handleIncomingPackets, socket_fd);
 	test.detach();
+	handlePackets.detach();
 	
-	InitWindow(100, 100, "window");
-	SetTargetFPS(30);
-	while(!WindowShouldClose()){
-		BeginDrawing();
-		ClearBackground(GRAY);
-		EndDrawing();
-	}
+
+	// window rendering
+	//SetTraceLogLevel(LOG_ERROR); 
+	//InitWindow(100, 100, "window");
+	//SetTargetFPS(30);
+	//while(!WindowShouldClose()){
+	//	BeginDrawing();
+	//	ClearBackground(GRAY);
+	//	EndDrawing();
+	//}
+	while(true)continue;
 	return 0; 
 }

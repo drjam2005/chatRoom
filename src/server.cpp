@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <thread>
+#include <unistd.h>
 
 #include <objects.h>
 #include <packets.h>
@@ -19,14 +20,27 @@ void handleClientPackets(Client client){
 
 		if(rec == 0){
 			std::cout << client.username << " left..." << std::endl;
+			for(Client& clnt : clients){
+				if(clnt.client_fd == client.client_fd) continue;
+				PACKET_TYPE pt = USER_LEAVE;
+				send(clnt.client_fd, &pt, sizeof(PACKET_TYPE), 0);
+				send(clnt.client_fd, &client, sizeof(Client), 0);
+			}
 			return;
 		}
 
 		if(packet_type == MESSAGE){
-			MESSAGE_PACKET packet; 
+			_MESSAGE_PACKET packet; 
 			rec = recv(client.client_fd, &packet, sizeof(packet), 0);
-			packet.client_fd = client.client_fd;
-			std::cout << client.client_fd << ", " << packet.client_fd << " said: " << packet.message << std::endl;
+			packet.client = client;
+			std::cout << packet.client.username << " said: " << packet.message << std::endl;
+
+			for(Client& clnt : clients){
+				if(clnt.client_fd == client.client_fd) continue;
+				PACKET_TYPE pt = MESSAGE;
+				send(clnt.client_fd, &pt, sizeof(PACKET_TYPE), 0);
+				send(clnt.client_fd, &packet, sizeof(_MESSAGE_PACKET), 0);
+			}
 		}
 	}
 }
@@ -38,11 +52,25 @@ void handleJoin(int socket_fd){
 
 		char username[256] = {0};
 		int rec = recv(client_fd, &username, sizeof(username), 0);
-		std::cout << rec << std::endl;
+		if(rec <= 0){
+			std::cout << "what..." << std::endl;
+			close(client_fd);
+			return;
+		}
 
 		client.client_fd = client_fd;
 		strncpy(client.username, username, sizeof(username));
 		std::cout << "Client joined: " << client.username << std::endl;
+
+		for(Client& clnt : clients){
+			PACKET_TYPE type = USER_JOIN;
+			send(clnt.client_fd, &type, sizeof(PACKET_TYPE), 0);
+			send(clnt.client_fd, &client, sizeof(Client), 0);
+
+			type = USER_EXISTING;
+			send(client.client_fd, &type, sizeof(PACKET_TYPE), 0);
+			send(client.client_fd, &clnt, sizeof(Client), 0);
+		}
 
 		clients.push_back(client);
 
