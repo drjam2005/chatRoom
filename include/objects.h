@@ -33,4 +33,6 @@ class ClassUI {
 	public:
 		ClassUI(char*);
 		void Render();
+		void parseChar();
+		void parseKey();
 };

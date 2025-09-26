@@ -91,15 +91,16 @@ int main(){
 	
 
 	// window rendering
+	ClassUI ui(name);
 	SetTraceLogLevel(LOG_ERROR); 
-	InitWindow(100, 100, "window");
+	InitWindow(800, 600, "window");
 	SetTargetFPS(30);
 	while(!WindowShouldClose()){
 		BeginDrawing();
 		ClearBackground(GRAY);
-
-	
-
+		ui.Render();
+		ui.parseChar();
+		ui.parseKey();
 		EndDrawing();
 	}
 	while(true)continue;

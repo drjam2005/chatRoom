@@ -24,7 +24,8 @@ serverSrc = [
 
 ]
 clientSrc = [
- 'src/client.cpp'
+ 'src/client.cpp',
+ 'src/objects.cpp'
 ]
 
 server = executable(
