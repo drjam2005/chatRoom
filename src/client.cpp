@@ -14,21 +14,7 @@
 #include <objects.h>
 #include <packets.h>
 
-void consoleInput(int socket_fd){
-	while (true){
-		char message[1024] = {0};
-		std::cin.getline(message, sizeof(message));
-
-		PACKET_TYPE packet_type = MESSAGE;
-		_MESSAGE_PACKET packet;
-
-		strncpy(packet.message, message, sizeof(packet.message));
-		send(socket_fd, &packet_type, sizeof(PACKET_TYPE), 0);
-		send(socket_fd, &packet, sizeof(packet), 0);
-	};
-}
-
-void handleIncomingPackets(int socket_fd){
+void handleIncomingPackets(int socket_fd, ClientUI& ui){
 	while (true){
 		PACKET_TYPE pt;
 		int bytes = recv(socket_fd, &pt, sizeof(PACKET_TYPE), 0);
@@ -57,6 +43,7 @@ void handleIncomingPackets(int socket_fd){
 		if(pt == MESSAGE){
 			_MESSAGE_PACKET msg; 
 			int rec = recv(socket_fd, &msg, sizeof(_MESSAGE_PACKET), 0); if(rec <= 0) return;
+			ui.AddMSG(msg);
 			std::cout << msg.client.username << ": " << msg.message << std::endl;
 		}
 
@@ -83,16 +70,13 @@ int main(){
 		return -2;
 	}
 
-	// send(socket_fd, (PACKET_TYPE*)(JOIN), sizeof(PACKET_TYPE), 0);
+	ClientUI ui(name, socket_fd);
+
 	send(socket_fd, name, sizeof(name), 0);
-	std::thread test(consoleInput, socket_fd);
-	std::thread handlePackets(handleIncomingPackets, socket_fd);
-	test.detach();
+	std::thread handlePackets(handleIncomingPackets, socket_fd, std::ref(ui));
 	handlePackets.detach();
 	
-
 	// window rendering
-	ClientUI ui(name, socket_fd);
 	SetTraceLogLevel(LOG_ERROR); 
 	InitWindow(800, 600, "window");
 	SetTargetFPS(30);
@@ -100,8 +84,11 @@ int main(){
 		BeginDrawing();
 		ClearBackground(GRAY);
 
+		ui.Update();
+
 		ui.parseChar();
 		ui.parseKey();
+
 		ui.Render();
 
 		EndDrawing();

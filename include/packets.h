@@ -1,3 +1,5 @@
+#pragma once
+
 #include <objects.h>
 
 enum PACKET_TYPE {
