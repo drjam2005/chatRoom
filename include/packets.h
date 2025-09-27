@@ -2,6 +2,8 @@
 
 #include <objects.h>
 
+#ifndef PACKTYPEDEF
+#define PACKTYPEDEF
 enum PACKET_TYPE {
 	// user joining/leaving
 	USER_JOIN,
@@ -11,6 +13,7 @@ enum PACKET_TYPE {
 	// message handling
 	MESSAGE,
 };
+#endif
 
 struct _MESSAGE_PACKET {
 	Client client;

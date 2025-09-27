@@ -1,5 +1,6 @@
 #include <objects.h>
 #include <iostream>
+#include <algorithm>
 #include <packets.h>
 #include <sys/socket.h>
 
@@ -26,6 +27,7 @@ char* messageBox::getMsg(){
 
 ClientUI::ClientUI(Client client, int socket_fd){
 	user = client;
+	users.push_back(user);
 	this->socket_fd = socket_fd;
 }
 
@@ -34,11 +36,22 @@ void ClientUI::Render(){
 	DrawRectangle(50, 50, GetScreenWidth()-200, GetScreenHeight()-125, WHITE);
 	int index = 0;
 	for(messageData msg : messages.getMessages()){
-		DrawText(TextFormat("(%d) %s: %s", msg.user.client_fd, msg.user.username, msg.message), 60, 60+20*index, 20, BLACK);
+		Color color = BLACK;
+		if(msg.user.client_fd == user.client_fd)
+			color = BLUE;
+		DrawText(TextFormat("(%d) %s: %s", msg.user.client_fd, msg.user.username, msg.message), 60, 60+20*index, 20, color);
 		index++;
 	}
+	index = 0;
 
-	// render user field
+	// render user list
+	for(Client& usr : users){
+		Color clr = BLACK;
+		if(usr.client_fd == user.client_fd) clr = Color{0,0,100,255};
+		DrawText(TextFormat("(%d) %s",usr.client_fd, usr.username), GetScreenWidth()-140, 60+(20*index), 20, clr);
+		index++;
+	}
+	// render user input field
 	DrawRectangle(50, GetScreenHeight()-65, GetScreenWidth()-200, 30, WHITE);
 	DrawText(userMsg.getMsg(), 60, GetScreenHeight()-60, 20, BLACK);
 }
@@ -73,6 +86,13 @@ void ClientUI::Update(){
 	parseKey();
 }
 
+void ClientUI::UpdateUserList(Client clnt, PACKET_TYPE pt){
+	if(pt == USER_EXISTING || pt == USER_JOIN){
+		users.push_back(clnt);
+	}if(pt == USER_LEAVE){
+		users.erase(std::remove(users.begin(), users.end(), clnt), users.end());
+	}
+}
 void ClientUI::AddMSG(_MESSAGE_PACKET msg){
 	messages.AddMessage(msg);
 }

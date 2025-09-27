@@ -25,12 +25,14 @@ void handleIncomingPackets(int socket_fd, ClientUI& ui){
 		if(pt == USER_JOIN){
 			Client newClient;
 			recv(socket_fd, &newClient, sizeof(Client), 0);
+			ui.UpdateUserList(newClient, USER_JOIN);
 			std::cout << "\nNew client: " << newClient.client_fd << " : " << newClient.username << std::endl;
 		}
 		
 		if(pt == USER_EXISTING){
 			Client existingClient;
 			recv(socket_fd, &existingClient, sizeof(Client), 0);
+			ui.UpdateUserList(existingClient, USER_EXISTING);
 			std::cout << "\nExisting client: " << existingClient.client_fd << " : " << existingClient.username << std::endl;
 		}
 
@@ -72,13 +74,14 @@ int main(){
 
 	Client me;
 	strncpy(me.username, name, sizeof(me.username));
+
 	int netID;
 	recv(socket_fd, &netID, sizeof(netID), 0);
 	me.client_fd = ntohl(netID);
 	std::cout << ntohl(netID) << " : " << me.client_fd << std::endl;
 
-	ClientUI ui(me, socket_fd);
 
+	ClientUI ui(me, socket_fd);
 	send(socket_fd, name, sizeof(name), 0);
 	std::thread handlePackets(handleIncomingPackets, socket_fd, std::ref(ui));
 	handlePackets.detach();
