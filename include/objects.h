@@ -46,12 +46,12 @@ public:
 
 class ClientUI {
 	private:
-		std::string nickname;
+		Client user;
 		int socket_fd;
 		messageBox userMsg;
 		messageField messages;
 	public:
-		ClientUI(char*, int);
+		ClientUI(Client, int);
 		void Render();
 		void parseChar();
 		void parseKey();
@@ -60,5 +60,5 @@ class ClientUI {
 		void Update();
 
 
-		void sendMessage(char*);
+		void sendMessage(_MESSAGE_PACKET);
 };

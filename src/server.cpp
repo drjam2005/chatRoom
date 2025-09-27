@@ -49,6 +49,9 @@ void handleJoin(int socket_fd){
 	while(true){
 		Client client = {0};
 		int client_fd = accept(socket_fd, 0, 0);
+		int theID = client_fd;
+		int netID = htonl(theID);
+		send(client_fd, &netID, sizeof(netID), 0);
 
 		char username[256] = {0};
 		int rec = recv(client_fd, &username, sizeof(username), 0);

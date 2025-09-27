@@ -70,7 +70,14 @@ int main(){
 		return -2;
 	}
 
-	ClientUI ui(name, socket_fd);
+	Client me;
+	strncpy(me.username, name, sizeof(me.username));
+	int netID;
+	recv(socket_fd, &netID, sizeof(netID), 0);
+	me.client_fd = ntohl(netID);
+	std::cout << ntohl(netID) << " : " << me.client_fd << std::endl;
+
+	ClientUI ui(me, socket_fd);
 
 	send(socket_fd, name, sizeof(name), 0);
 	std::thread handlePackets(handleIncomingPackets, socket_fd, std::ref(ui));

@@ -24,8 +24,8 @@ char* messageBox::getMsg(){
 	return message;
 }
 
-ClientUI::ClientUI(char* name, int socket_fd){
-	nickname = name;
+ClientUI::ClientUI(Client client, int socket_fd){
+	user = client;
 	this->socket_fd = socket_fd;
 }
 
@@ -34,10 +34,9 @@ void ClientUI::Render(){
 	DrawRectangle(50, 50, GetScreenWidth()-200, GetScreenHeight()-125, WHITE);
 	int index = 0;
 	for(messageData msg : messages.getMessages()){
-		DrawText(msg.message, 20, 60+20*index, 20, BLACK);
+		DrawText(TextFormat("(%d) %s: %s", msg.user.client_fd, msg.user.username, msg.message), 60, 60+20*index, 20, BLACK);
 		index++;
 	}
-
 
 	// render user field
 	DrawRectangle(50, GetScreenHeight()-65, GetScreenWidth()-200, 30, WHITE);
@@ -52,16 +51,19 @@ void ClientUI::parseChar(){
 void ClientUI::parseKey(){
 	int chr = GetKeyPressed();
 	if(chr == KEY_ENTER){
-		sendMessage(userMsg.getMsg());
+		_MESSAGE_PACKET msgPacket;
+		msgPacket.client.client_fd = user.client_fd;
+		strncpy(msgPacket.client.username, user.username, sizeof(msgPacket.client.username));
+		strncpy(msgPacket.message, userMsg.getMsg(), 1024);
+
+		messages.AddMessage(msgPacket);
+		sendMessage(msgPacket);
 	}
 	userMsg.ParseKey(chr);
 }
 
-void ClientUI::sendMessage(char* message){
+void ClientUI::sendMessage(_MESSAGE_PACKET msgPacket){
 	PACKET_TYPE pt = MESSAGE;
-	_MESSAGE_PACKET msgPacket;
-	strncpy(msgPacket.message, message, 1024);
-
 	send(socket_fd, &pt, sizeof(PACKET_TYPE), 0);
 	send(socket_fd, &msgPacket, sizeof(_MESSAGE_PACKET), 0);
 }
