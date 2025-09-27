@@ -20,9 +20,9 @@ mainSrc = [
 ]
 
 serverSrc = [
- 'src/server.cpp'
-
+ 'src/server.cpp',
 ]
+
 clientSrc = [
  'src/client.cpp',
  'src/objects.cpp'

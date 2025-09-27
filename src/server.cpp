@@ -8,11 +8,34 @@
 #include <thread>
 #include <unistd.h>
 
-#include <objects.h>
 #include <packets.h>
 
 std::vector<Client> clients;
 
+class msgField{
+private:
+	int MAX_LINES = 20;
+	std::vector<_MESSAGE_PACKET> messages;
+public:
+	std::vector<_MESSAGE_PACKET> getMessages() {
+		return messages;
+	}
+	msgField(int lines=20){
+		MAX_LINES = lines;
+		messages.reserve(MAX_LINES);
+	}
+	
+	void AddMessage(_MESSAGE_PACKET msg){
+		if(messages.size() < 10){
+			messages.push_back(msg);
+		}else{
+			messages.erase(messages.begin());
+			messages.push_back(msg);
+		}
+	}
+};
+
+msgField field;
 void handleClientPackets(Client client){
 	while(true){
 		PACKET_TYPE packet_type;
@@ -34,13 +57,13 @@ void handleClientPackets(Client client){
 			rec = recv(client.client_fd, &packet, sizeof(packet), 0);
 			packet.client = client;
 			std::cout << packet.client.username << " said: " << packet.message << std::endl;
-
 			for(Client& clnt : clients){
 				if(clnt.client_fd == client.client_fd) continue;
 				PACKET_TYPE pt = MESSAGE;
 				send(clnt.client_fd, &pt, sizeof(PACKET_TYPE), 0);
 				send(clnt.client_fd, &packet, sizeof(_MESSAGE_PACKET), 0);
 			}
+			field.AddMessage(packet);
 		}
 	}
 }
@@ -76,6 +99,12 @@ void handleJoin(int socket_fd){
 		}
 
 		clients.push_back(client);
+		for(_MESSAGE_PACKET& mesg : field.getMessages()){
+			PACKET_TYPE type = MESSAGE;
+			send(client.client_fd, &type, sizeof(PACKET_TYPE), 0);
+			send(client.client_fd, &mesg, sizeof(mesg), 0);
+		}
+
 
 		std::thread handle_client(handleClientPackets, client);
 		handle_client.detach();

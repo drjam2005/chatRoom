@@ -41,23 +41,18 @@ class messageBox {
 };
 
 
-struct messageData {
-	Client user;
-	char message[1024] = {0};
-};
-
 class messageField {
 private:
 	int MAX_LINES = 20;
-	std::vector<messageData> messages;
+	std::vector<_MESSAGE_PACKET> messages;
 public:
-	std::vector<messageData> getMessages();
+	std::vector<_MESSAGE_PACKET> getMessages();
 	messageField(int lines=20){
 		MAX_LINES = lines;
 		messages.reserve(MAX_LINES);
 	}
 	
-	void AddMessage(_MESSAGE_PACKET msg);
+	void AddMessage(_MESSAGE_PACKET);
 };
 
 class ClientUI {
@@ -67,8 +62,8 @@ class ClientUI {
 
 		int socket_fd;
 		messageBox userMsg;
-		messageField messages;
 	public:
+		messageField messages;
 		ClientUI(Client, int);
 		void Render();
 		void parseChar();

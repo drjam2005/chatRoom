@@ -35,11 +35,11 @@ void ClientUI::Render(){
 	// render messages	
 	DrawRectangle(50, 50, GetScreenWidth()-200, GetScreenHeight()-125, WHITE);
 	int index = 0;
-	for(messageData msg : messages.getMessages()){
+	for(_MESSAGE_PACKET msg : messages.getMessages()){
 		Color color = BLACK;
-		if(msg.user.client_fd == user.client_fd)
+		if(msg.client.client_fd == user.client_fd)
 			color = BLUE;
-		DrawText(TextFormat("(%d) %s: %s", msg.user.client_fd, msg.user.username, msg.message), 60, 60+20*index, 20, color);
+		DrawText(TextFormat("(%d) %s: %s", msg.client.client_fd, msg.client.username, msg.message), 60, 60+20*index, 20, color);
 		index++;
 	}
 	index = 0;
@@ -96,19 +96,15 @@ void ClientUI::UpdateUserList(Client clnt, PACKET_TYPE pt){
 void ClientUI::AddMSG(_MESSAGE_PACKET msg){
 	messages.AddMessage(msg);
 }
-
 void messageField::AddMessage(_MESSAGE_PACKET msg){
-	messageData mesg;
-	mesg.user = msg.client;
-	strncpy(mesg.message, msg.message, sizeof(mesg.message));
 	if(messages.size() < 10){
-		messages.push_back(mesg);
+		messages.push_back(msg);
 	}else{
 		messages.erase(messages.begin());
-		messages.push_back(mesg);
+		messages.push_back(msg);
 	}
 }
 
-std::vector<messageData> messageField::getMessages(){
+std::vector<_MESSAGE_PACKET> messageField::getMessages(){
 	return messages;
 }

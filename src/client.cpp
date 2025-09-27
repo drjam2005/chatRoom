@@ -80,12 +80,11 @@ int main(){
 	me.client_fd = ntohl(netID);
 	std::cout << ntohl(netID) << " : " << me.client_fd << std::endl;
 
-
 	ClientUI ui(me, socket_fd);
 	send(socket_fd, name, sizeof(name), 0);
+	
 	std::thread handlePackets(handleIncomingPackets, socket_fd, std::ref(ui));
 	handlePackets.detach();
-	
 	// window rendering
 	SetTraceLogLevel(LOG_ERROR); 
 	InitWindow(800, 600, "window");
