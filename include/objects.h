@@ -1,19 +1,14 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <cstring>
 #include <raylib.h>
-#include <string.h>
 
 struct Client;
-struct Message;
-
 struct Client {
 	int client_fd = 0;
 	char username[256] = {0};
-};
-
-struct Message {
-	char message[1024] = {0};
 };
 
 class messageBox {
@@ -26,13 +21,27 @@ class messageBox {
 		char* getMsg();
 };
 
-class ClassUI {
+
+class messageData {
+	Client user;
+	char message[1024] = {0};
+};
+
+class messageField {
+	std::vector<messageData> messages;
+};
+
+class ClientUI {
 	private:
-		messageBox msg;
 		std::string nickname;
+		int socket_fd;
+		messageBox userMsg;
+		messageField messages;
 	public:
-		ClassUI(char*);
+		ClientUI(char*, int);
 		void Render();
 		void parseChar();
 		void parseKey();
+
+		void sendMessage(char*);
 };

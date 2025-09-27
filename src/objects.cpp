@@ -1,5 +1,7 @@
 #include <objects.h>
+#include <packets.h>
 #include <iostream>
+#include <sys/socket.h>
 
 void messageBox::ParseKey(int key) {
 	if(key == KEY_BACKSPACE){
@@ -8,8 +10,8 @@ void messageBox::ParseKey(int key) {
 		}
 	}
 	if(key == KEY_ENTER){
-		std::cout << message << std::endl;
-		memset(message, 0, sizeof(message)); index = 0;
+		memset(message, 0, sizeof(message));
+		index = 0;
 	}
 }
 
@@ -22,21 +24,39 @@ char* messageBox::getMsg(){
 	return message;
 }
 
-ClassUI::ClassUI(char* name){
+ClientUI::ClientUI(char* name, int socket_fd){
 	nickname = name;
+	this->socket_fd = socket_fd;
 }
 
-void ClassUI::Render(){
-	DrawText(msg.getMsg(), 20, 20, 10, WHITE);
+void ClientUI::Render(){
+	// render messages	
+	DrawRectangle(50, 50, GetScreenWidth()-200, GetScreenHeight()-125, WHITE);
+
+
+	// render user field
+	DrawRectangle(50, GetScreenHeight()-65, GetScreenWidth()-200, 30, WHITE);
+	DrawText(userMsg.getMsg(), 60, GetScreenHeight()-60, 20, BLACK);
 }
 
-void ClassUI::parseChar(){
+void ClientUI::parseChar(){
 	int chr = GetCharPressed();
 	if(chr)
-		msg.AddChar(chr);
+		userMsg.AddChar(chr);
 }
-void ClassUI::parseKey(){
+void ClientUI::parseKey(){
 	int chr = GetKeyPressed();
-	if(chr)
-		msg.ParseKey(chr);
+	if(chr == KEY_ENTER){
+		sendMessage(userMsg.getMsg());
+	}
+	userMsg.ParseKey(chr);
+}
+
+void ClientUI::sendMessage(char* message){
+	PACKET_TYPE pt = MESSAGE;
+	_MESSAGE_PACKET msgPacket;
+	strncpy(msgPacket.message, message, 1024);
+
+	send(socket_fd, &pt, sizeof(PACKET_TYPE), 0);
+	send(socket_fd, &msgPacket, sizeof(_MESSAGE_PACKET), 0);
 }

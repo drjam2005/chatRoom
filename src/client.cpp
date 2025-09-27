@@ -21,6 +21,7 @@ void consoleInput(int socket_fd){
 
 		PACKET_TYPE packet_type = MESSAGE;
 		_MESSAGE_PACKET packet;
+
 		strncpy(packet.message, message, sizeof(packet.message));
 		send(socket_fd, &packet_type, sizeof(PACKET_TYPE), 0);
 		send(socket_fd, &packet, sizeof(packet), 0);
@@ -91,16 +92,18 @@ int main(){
 	
 
 	// window rendering
-	ClassUI ui(name);
+	ClientUI ui(name, socket_fd);
 	SetTraceLogLevel(LOG_ERROR); 
 	InitWindow(800, 600, "window");
 	SetTargetFPS(30);
 	while(!WindowShouldClose()){
 		BeginDrawing();
 		ClearBackground(GRAY);
-		ui.Render();
+
 		ui.parseChar();
 		ui.parseKey();
+		ui.Render();
+
 		EndDrawing();
 	}
 	while(true)continue;
