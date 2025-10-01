@@ -12,6 +12,7 @@
 #include <raylib.h>
 
 #include <objects.h>
+#include <button.h>
 #include <packets.h>
 
 void handleIncomingPackets(int socket_fd, ClientUI& ui){
@@ -91,7 +92,7 @@ int main(){
 	SetTargetFPS(30);
 	while(!WindowShouldClose()){
 		BeginDrawing();
-		ClearBackground(GRAY);
+		ClearBackground({ 40, 40, 40, 255 });
 
 		ui.Update();
 

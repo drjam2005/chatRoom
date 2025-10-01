@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstring>
 #include <raylib.h>
+#include <button.h>
 
 // forward dec
 struct _MESSAGE_PACKET;
@@ -65,6 +66,7 @@ class ClientUI {
 	public:
 		messageField messages;
 		ClientUI(Client, int);
+		Button b1;
 		void Render();
 		void parseChar();
 		void parseKey();

@@ -25,7 +25,8 @@ serverSrc = [
 
 clientSrc = [
  'src/client.cpp',
- 'src/objects.cpp'
+ 'src/objects.cpp',
+ 'src/button.cpp'
 ]
 
 server = executable(

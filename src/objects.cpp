@@ -25,11 +25,29 @@ char* messageBox::getMsg(){
 	return message;
 }
 
-ClientUI::ClientUI(Client client, int socket_fd){
-	user = client;
-	users.push_back(user);
-	this->socket_fd = socket_fd;
+ClientUI::ClientUI(Client client, int socket_fd) : b1()
+{
+    user = client;
+    users.push_back(user);
+    this->socket_fd = socket_fd;
+
+    b1 = Button(
+        Rectangle{ 800 - 140.0f, 600 - 65.0f, 75, 30 },
+        (char*)"SEND", 5.0f
+    );
+
+	b1.SetClick([&] {
+		_MESSAGE_PACKET msgPacket;
+		msgPacket.client.client_fd = user.client_fd;
+		strncpy(msgPacket.client.username, user.username, sizeof(msgPacket.client.username));
+		strncpy(msgPacket.message, userMsg.getMsg(), 1024);
+
+		messages.AddMessage(msgPacket);
+		sendMessage(msgPacket);
+		userMsg.ParseKey(KEY_ENTER);
+	});
 }
+
 
 void ClientUI::Render(){
 	// render messages	
@@ -54,6 +72,8 @@ void ClientUI::Render(){
 	// render user input field
 	DrawRectangle(50, GetScreenHeight()-65, GetScreenWidth()-200, 30, WHITE);
 	DrawText(userMsg.getMsg(), 60, GetScreenHeight()-60, 20, BLACK);
+	b1.Render();
+	b1.Update();
 }
 
 void ClientUI::parseChar(){
