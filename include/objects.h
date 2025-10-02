@@ -41,6 +41,14 @@ class messageBox {
 		char* getMsg();
 };
 
+class messageGUI {
+	char user[1024] = {0};
+	char message[1024] = {0};
+public:
+	messageGUI(char*, char*);
+	void Render(int&, int, bool);
+};
+
 
 class messageField {
 private:

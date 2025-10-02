@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <packets.h>
 #include <sys/socket.h>
+#include <sstream>
 
 void messageBox::ParseKey(int key) {
 	if(key == KEY_BACKSPACE){
@@ -48,16 +49,20 @@ ClientUI::ClientUI(Client client, int socket_fd) : b1()
 	});
 }
 
-
 void ClientUI::Render(){
 	// render messages	
 	DrawRectangle(50, 50, GetScreenWidth()-200, GetScreenHeight()-125, WHITE);
 	int index = 0;
+	int yPos = 50;
 	for(_MESSAGE_PACKET msg : messages.getMessages()){
-		Color color = BLACK;
+		bool isUser = false;
 		if(msg.client.client_fd == user.client_fd)
-			color = BLUE;
-		DrawText(TextFormat("(%d) %s: %s", msg.client.client_fd, msg.client.username, msg.message), 60, 60+20*index, 20, color);
+			isUser = true;
+
+		messageGUI msgthing(msg.client.username, msg.message);
+		msgthing.Render(yPos, 20, isUser);
+
+		//DrawText(TextFormat("(%d) %s: %s", msg.client.client_fd, msg.client.username, msg.message), 60, 60+20*index, 20, color);
 		index++;
 	}
 	index = 0;
@@ -127,4 +132,43 @@ void messageField::AddMessage(_MESSAGE_PACKET msg){
 
 std::vector<_MESSAGE_PACKET> messageField::getMessages(){
 	return messages;
+}
+
+
+messageGUI::messageGUI(char* user, char* message){
+	strncpy(this->user, user, sizeof(this->user));
+	strncpy(this->message, message, sizeof(this->message));
+}
+
+void messageGUI::Render(int& yPos, int fontSize, bool isUser){
+	Vector2 dimensions = MeasureTextEx(GetFontDefault(), this->message, fontSize, 0);
+	std::stringstream ss(this->message);
+	std::string str;
+	std::string mesg;
+	int maxSize = 200;
+	int currLen = 0;
+	while(ss >> str){
+		std::string tempstr = str + " ";
+		currLen += MeasureTextEx(GetFontDefault(), tempstr.data(), fontSize, 0).x;
+		if(currLen > maxSize){
+			mesg += "\n"; currLen = 0;
+			mesg += str;
+		}else{
+			mesg += str;
+			mesg += " ";
+		}
+	}
+	dimensions = MeasureTextEx(GetFontDefault(), mesg.data(), fontSize, 0);
+	if(isUser){
+		DrawRectangle(GetScreenWidth()-200-dimensions.x, yPos+fontSize, dimensions.x+50, dimensions.y, BLUE);
+		DrawText(TextFormat("%s", mesg.data()), GetScreenWidth()-200-dimensions.x, yPos+fontSize, fontSize, BLACK);
+	}else{
+		DrawRectangle(50, yPos+fontSize, dimensions.x+50, dimensions.y, GRAY);
+		DrawText(TextFormat("%s:", this->user), 50, yPos, fontSize, BLACK);
+		DrawText(TextFormat("%s", mesg.data()), 50, yPos+fontSize, fontSize, BLACK);
+		yPos += fontSize;
+	}
+
+
+	yPos += dimensions.y;
 }
